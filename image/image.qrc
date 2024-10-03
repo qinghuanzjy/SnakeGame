@@ -1,0 +1,13 @@
+<RCC>
+    <qresource prefix="/">
+        <file>china.png</file>
+        <file>snakeHead.jpg</file>
+        <file>snakeHead.png</file>
+        <file>snakeHeadDown.png</file>
+        <file>snakeHeadLeft.png</file>
+        <file>snakeTail.png</file>
+        <file>wall.png</file>
+        <file>snakeHeadRight.png</file>
+        <file>snakeHeadUp.png</file>
+    </qresource>
+</RCC>
