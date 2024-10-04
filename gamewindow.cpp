@@ -2,13 +2,15 @@
 #include "ui_gamewindow.h"
 #include <QRandomGenerator>
 #include<QDebug>
-
-
+#include <set>
+#include <utility>
 GameWindow::GameWindow(QWidget *parent):QMainWindow(parent),ui(new Ui::GameWindow)
 {
+
     int wid=36*Node::getWidth();
     int hgt=36*Node::getHeight();
     setwh(wid,hgt);//设置游戏界面为18*18
+    initObstacle(20);//障碍物数量
     setFixedSize(wid,hgt);
     ui->setupUi(this);
     // 创建随机数生成器
@@ -45,6 +47,12 @@ GameWindow::~GameWindow()
 {
     delete ui;
     delete mysnake;
+    for(int i=0;i<h/Node::getHeight();i++){
+        if(walls[i]){
+            delete walls[i];
+        }
+    }
+    delete[] walls;
 }
 
 void GameWindow::keyPressEvent(QKeyEvent *event)
@@ -143,16 +151,15 @@ void GameWindow::paintEvent(QPaintEvent *event)
             }
         }
     }
+    //画障碍物
+    for(auto it=occupiedPositions.begin();it!=occupiedPositions.end();it++){
+        int x=it->first;
+        int y=it->second;
+        painter.drawPixmap(x,y,Node::getWidth(),Node::getHeight(),pix);
+    }
     //画食物
     pix.load(":/china.png");
     painter.drawPixmap(food->getFood()->left(),food->getFood()->top(),Node::getWidth(),Node::getHeight(),pix);
-    /*if(isCollide()){
-        QFont font("方正舒体",30,QFont::ExtraLight,false);
-        painter.setFont(font);
-        painter.drawText(w/2,h/2,QString("GAME OVER!"));
-        timer->stop();
-
-    }*/
     if(biteSelf()||checkborder()){
         pen.setColor(Qt::red);
         painter.setPen(pen);
@@ -161,6 +168,7 @@ void GameWindow::paintEvent(QPaintEvent *event)
         painter.drawText(w/2-200,h/2,QString("GAME OVER!"));
         timer->stop();
     }
+
 
 }
 
@@ -173,18 +181,10 @@ void GameWindow::setwh(int x, int y)
 
 bool GameWindow::isCollide()
 {
-    int unitwid=w/Node::getWidth();
-    int unithgt=h/Node::getHeight();
-    for(int i=0;i<unitwid;i++){
-        for(int j=0;j<unithgt;j++){
-            QRectF* p=walls[i][j].getWall();
-            if(mysnake->snake[0].intersects(*p)){
-                return true;
-            }
-        }
-    }
-    return false;
+
 }
+
+
 
 void GameWindow::addReward()
 {
@@ -195,6 +195,7 @@ void GameWindow::addReward()
     int x=generator->bounded(1,unitwid-1);
     int y=generator->bounded(1,unithgt-1);
     food=new Food(x*Node::getWidth(),y*Node::getHeight(),Node::getWidth(),Node::getHeight());
+    update();
 }
 
 bool GameWindow::biteSelf()
@@ -215,6 +216,25 @@ bool GameWindow::checkborder()
     }else return true;
 }
 
+
+void GameWindow::initObstacle(int num)
+{
+    QRandomGenerator *generator = QRandomGenerator::global();
+    int unitWid = w / Node::getWidth();
+    int unitHgt = h / Node::getHeight();
+    for (int i = 0; i < num;) {
+        int x = generator->bounded(1, unitWid - 1);
+        int y = generator->bounded(1, unitHgt - 1);
+        std::pair<int, int> position(x*Node::getWidth(), y*Node::getHeight());
+
+        // 检查位置是否已占用
+        if (occupiedPositions.find(position) != occupiedPositions.end()) {
+            continue;  // 重新生成随机坐标
+        }
+        occupiedPositions.insert(position);
+        i++;  // 增加计数器
+    }
+}
 void GameWindow::timeout()
 {
     QRectF* f=food->getFood();

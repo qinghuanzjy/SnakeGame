@@ -10,6 +10,8 @@
 #include"node.h"
 #include"wall.h"
 #include"food.h"
+#include<QSet>
+using namespace std;
 QT_BEGIN_NAMESPACE
 namespace Ui {
 class GameWindow;
@@ -30,6 +32,7 @@ public:
     void addReward();//增加食物
     bool biteSelf();//判断是否咬到自己
     bool checkborder();//判断是否撞到边界墙
+    void initObstacle(int num);//初始化障碍
 public slots:
     void timeout();
 private:
@@ -41,6 +44,7 @@ private:
     int w,h;//设置整个游戏界面的宽高
     Wall** walls;
     Food* food;
+    QSet<pair<int,int>> occupiedPositions;//记录某个位置是否有障碍,用左上角坐标代替
 
 
 };
