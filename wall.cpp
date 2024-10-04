@@ -1,18 +1,27 @@
 #include "wall.h"
 
-Wall::Wall() {}
-
-Wall::Wall(QPointF p)
-{
-    pos=p;
+Wall::Wall() {
+    rec=nullptr;
 }
 
-QPointF Wall::getPoint()
+Wall::~Wall()
 {
-    return pos;
+    delete rec;
 }
 
-void Wall::setPoint(QPointF p)
+Wall::Wall(int x, int y, int width, int height)
 {
-    pos=p;
+    rec=new QRectF(x,y,width,height);
 }
+
+QRectF*& Wall::getWall()
+{
+    return rec;
+}
+
+void Wall::setWall(int x, int y, int width, int height)
+{
+    rec->setRect(x,y,width,height);
+}
+
+

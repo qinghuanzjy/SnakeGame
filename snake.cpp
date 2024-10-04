@@ -19,7 +19,6 @@ void Snake::addLength()
 {
     int len=snake.length();
     int x=0,y=0;
-    qDebug()<<getDirection();
     switch (getDirection()) {
     case dir::LEFT:
         x=snake[len-1].right();
