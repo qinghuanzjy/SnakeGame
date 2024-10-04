@@ -6,7 +6,7 @@ Wall::Wall() {
 
 Wall::~Wall()
 {
-    delete rec;
+
 }
 
 Wall::Wall(int x, int y, int width, int height)

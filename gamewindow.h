@@ -26,9 +26,10 @@ public:
     void keyPressEvent(QKeyEvent *event);
     void paintEvent(QPaintEvent *event);
     void setwh(int x,int y);
-    bool isCollide();
-    void addReward();
-    bool biteSelf();
+    bool isCollide();//碰撞障碍物检测，图标也用墙
+    void addReward();//增加食物
+    bool biteSelf();//判断是否咬到自己
+    bool checkborder();//判断是否撞到边界墙
 public slots:
     void timeout();
 private:

@@ -25,10 +25,10 @@ GameWindow::GameWindow(QWidget *parent):QMainWindow(parent),ui(new Ui::GameWindo
     for(int i=0;i<unithgt;i++){
         for(int j=0;j<unitwid;j++){
             if(i==0||i==unithgt-1){
-                walls[i][j]= Wall(i*Node::getHeight(),j*Node::getWidth(),Node::getWidth(),Node::getHeight());
+                walls[i][j]= Wall(j*Node::getWidth(),i*Node::getHeight(),Node::getWidth(),Node::getHeight());
             }else{
                 if(j==0||j==unitwid-1){
-                    walls[i][j]=Wall(i*Node::getHeight(),j*Node::getWidth(),Node::getWidth(),Node::getHeight());
+                    walls[i][j]=Wall(j*Node::getWidth(),i*Node::getHeight(),Node::getWidth(),Node::getHeight());
                 }else{
                     walls[i][j]=Wall();
                 }
@@ -153,7 +153,7 @@ void GameWindow::paintEvent(QPaintEvent *event)
         timer->stop();
 
     }*/
-    if(biteSelf()){
+    if(biteSelf()||checkborder()){
         pen.setColor(Qt::red);
         painter.setPen(pen);
         QFont font("方正舒体",50,QFont::Medium,false);
@@ -205,6 +205,14 @@ bool GameWindow::biteSelf()
         }
     }
     return false;
+}
+
+bool GameWindow::checkborder()
+{
+    QRectF border(Node::getWidth(),Node::getHeight(),w-2*Node::getWidth(),h-2*Node::getHeight());
+    if(border.contains(mysnake->snake[0])){
+        return false;
+    }else return true;
 }
 
 void GameWindow::timeout()
