@@ -7,6 +7,7 @@
 #include<QPaintEvent>
 #include<QPainter>
 #include"snake.h"
+#include"node.h"
 QT_BEGIN_NAMESPACE
 namespace Ui {
 class GameWindow;
@@ -22,7 +23,7 @@ public:
     ~GameWindow();
     void keyPressEvent(QKeyEvent *event);
     void paintEvent(QPaintEvent *event);
-
+    void setwh(int x,int y);
 public slots:
     void timeout();
 private:
@@ -30,8 +31,8 @@ private:
     QTimer* timer;
     bool isStart=true;
     int time=100;//时间间隔
-    int direction;
-    Snake* snake;
+    Snake* mysnake;
+    int w,h;//设置整个游戏界面的宽高
 
 
 };

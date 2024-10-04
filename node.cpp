@@ -1,7 +1,12 @@
 #include "node.h"
 int Node::width=19;
 int Node::height=20;
-Node::Node() {}
+
+
+Node::Node()
+{
+
+}
 
 Node::Node(int x, int y)
 {
