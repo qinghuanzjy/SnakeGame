@@ -33,6 +33,7 @@ public:
     bool biteSelf();//判断是否咬到自己
     bool checkborder();//判断是否撞到边界墙
     void initObstacle(int num);//初始化障碍
+    bool checkFoodPos();//检测食物是否与障碍物重叠
 public slots:
     void timeout();
 private:
@@ -45,6 +46,7 @@ private:
     Wall** walls;
     Food* food;
     QSet<pair<int,int>> occupiedPositions;//记录某个位置是否有障碍,用左上角坐标代替
+    int score;//得分
 
 
 };

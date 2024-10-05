@@ -6,20 +6,27 @@
 #include <utility>
 GameWindow::GameWindow(QWidget *parent):QMainWindow(parent),ui(new Ui::GameWindow)
 {
-
-    int wid=36*Node::getWidth();
-    int hgt=36*Node::getHeight();
-    setwh(wid,hgt);//设置游戏界面为18*18
-    initObstacle(20);//障碍物数量
-    setFixedSize(wid,hgt);
     ui->setupUi(this);
     // 创建随机数生成器
+    QFont font("微软雅黑", 14);
+    QPalette palette = ui->scoreui->palette();
+    palette.setColor(QPalette::WindowText, Qt::green); // 将字体颜色设置为绿色
+    ui->scoreui->setPalette(palette); // 应用调色板
     QRandomGenerator *generator = QRandomGenerator::global();
-    int random_number = generator->bounded(0, 4);//方向随机
-    timer=new QTimer(this);
-    mysnake=new Snake(wid/2,hgt/2,random_number);//生成蛇，并指定坐标
+    int wid=18*Node::getWidth();
+    int hgt=18*Node::getHeight();
+    score=0;//初始化得分
     int unithgt=hgt/Node::getHeight();//算出高有几块
     int unitwid=wid/Node::getWidth();//算出宽有几块
+    setwh(wid,hgt);//设置游戏界面为36*36
+    setFixedSize(wid,hgt);
+    ui->scoreui->setFont(font); // 应用字体到得分标签
+    ui->scoreui->move(wid-5*Node::getWidth(),Node::getHeight());//设置得分画面
+    ui->scoreui->setText("得分: 0");
+    initObstacle(10);//障碍物数量
+    int random_number = generator->bounded(0, 4);//方向随机
+    timer=new QTimer(this);
+    mysnake=new Snake(wid/2,hgt/2,random_number);//生成蛇，并指定坐标  
     walls=new Wall*[unithgt];//初始化墙
     for(int i=0;i<unithgt;i++){
         walls[i]=new Wall[unitwid];
@@ -38,7 +45,7 @@ GameWindow::GameWindow(QWidget *parent):QMainWindow(parent),ui(new Ui::GameWindo
         }
 
     }
-    addReward();
+    addReward();//初始化食物
     connect(timer,&QTimer::timeout,this,&GameWindow::timeout);
 
 }
@@ -160,7 +167,7 @@ void GameWindow::paintEvent(QPaintEvent *event)
     //画食物
     pix.load(":/china.png");
     painter.drawPixmap(food->getFood()->left(),food->getFood()->top(),Node::getWidth(),Node::getHeight(),pix);
-    if(biteSelf()||checkborder()){
+    if(biteSelf()||checkborder()||isCollide()){
         pen.setColor(Qt::red);
         painter.setPen(pen);
         QFont font("方正舒体",50,QFont::Medium,false);
@@ -181,10 +188,14 @@ void GameWindow::setwh(int x, int y)
 
 bool GameWindow::isCollide()
 {
-
+    int x=mysnake->snake[0].x();
+    int y=mysnake->snake[0].y();
+    std::pair<int,int>pos(x,y);
+    if(occupiedPositions.contains(pos)){
+        return true;
+    }
+    return false;
 }
-
-
 
 void GameWindow::addReward()
 {
@@ -216,7 +227,6 @@ bool GameWindow::checkborder()
     }else return true;
 }
 
-
 void GameWindow::initObstacle(int num)
 {
     QRandomGenerator *generator = QRandomGenerator::global();
@@ -231,18 +241,44 @@ void GameWindow::initObstacle(int num)
         if (occupiedPositions.find(position) != occupiedPositions.end()) {
             continue;  // 重新生成随机坐标
         }
+        //障碍物不能出现在蛇的初始位置
+        int x1=w-Node::getWidth();
+        int x2=w+Node::getWidth();
+        int y1=h-Node::getHeight();
+        int y2=h+Node::getHeight();
+        if(x>=x1&&x<=x2&&y>=y1&&y<=y2){
+            continue;
+        }
         occupiedPositions.insert(position);
         i++;  // 增加计数器
     }
 }
+
+bool GameWindow::checkFoodPos()
+{
+    QRectF* f=food->getFood();
+    int x=f->x();
+    int y=f->y();
+    std::pair<int,int>pos(x*Node::getWidth(),y*Node::getHeight());
+    if(occupiedPositions.contains(pos)){
+        return true;
+    }else return false;
+}
+
 void GameWindow::timeout()
 {
     QRectF* f=food->getFood();
     if(mysnake->snake[0].intersects(*f)){
         mysnake->addLength();
+        score++;
+        ui->scoreui->setText(QString("得分: %1").arg(score)); // 更新得分显示
         delete food;
         addReward();
-    }
+    }//吃到食物延长蛇，并重新生成食物
+    while(checkFoodPos()){
+        delete food;
+        addReward();
+    }//检查食物是否与障碍物重叠，重叠就重新生成食物
     mysnake->deletetail();
     mysnake->addhead();
     update();
