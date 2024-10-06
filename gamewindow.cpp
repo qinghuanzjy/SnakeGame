@@ -1,11 +1,34 @@
 #include "gamewindow.h"
 #include "ui_gamewindow.h"
+#include"node.h"
 #include <QRandomGenerator>
 #include<QDebug>
-#include <set>
 #include <utility>
-GameWindow::GameWindow(QWidget *parent):QMainWindow(parent),ui(new Ui::GameWindow)
+GameWindow::GameWindow(QWidget *parent,int diff):QMainWindow(parent),ui(new Ui::GameWindow)
 {
+    int widnode=36;
+    int hgtnode=36;
+    int obstaclenum=10;
+    switch (diff) {
+    case difficulty::EASY:
+        widnode=24;
+        hgtnode=24;
+        obstaclenum=20;
+        break;
+    case difficulty::MIDDLE:
+        widnode=36;
+        hgtnode=36;
+        obstaclenum=50;
+        break;
+    case difficulty::HARD:
+        widnode=36;
+        hgtnode=36;
+        obstaclenum=100;
+        break;
+    default:
+        break;
+    }
+    setWindowTitle("游戏窗口");
     ui->setupUi(this);
     // 创建随机数生成器
     QFont font("微软雅黑", 14);
@@ -13,8 +36,8 @@ GameWindow::GameWindow(QWidget *parent):QMainWindow(parent),ui(new Ui::GameWindo
     palette.setColor(QPalette::WindowText, Qt::green); // 将字体颜色设置为绿色
     ui->scoreui->setPalette(palette); // 应用调色板
     QRandomGenerator *generator = QRandomGenerator::global();
-    int wid=18*Node::getWidth();
-    int hgt=18*Node::getHeight();
+    int wid=widnode*Node::getWidth();
+    int hgt=hgtnode*Node::getHeight();
     score=0;//初始化得分
     int unithgt=hgt/Node::getHeight();//算出高有几块
     int unitwid=wid/Node::getWidth();//算出宽有几块
@@ -23,7 +46,7 @@ GameWindow::GameWindow(QWidget *parent):QMainWindow(parent),ui(new Ui::GameWindo
     ui->scoreui->setFont(font); // 应用字体到得分标签
     ui->scoreui->move(wid-5*Node::getWidth(),Node::getHeight());//设置得分画面
     ui->scoreui->setText("得分: 0");
-    initObstacle(10);//障碍物数量
+    initObstacle(obstaclenum);//障碍物数量
     int random_number = generator->bounded(0, 4);//方向随机
     timer=new QTimer(this);
     mysnake=new Snake(wid/2,hgt/2,random_number);//生成蛇，并指定坐标  
@@ -95,6 +118,15 @@ void GameWindow::keyPressEvent(QKeyEvent *event)
             timer->start(time);//实现空格切换暂停开始
         }
         break;
+    case Qt::Key_Q://按q加速
+        if(isspeed==true){
+            isspeed=false;
+            timer->setInterval(time);
+        }else{
+            isspeed=true;
+            timer->setInterval(time/3);
+        }
+        break;
     default:
         break;
     }
@@ -104,78 +136,22 @@ void GameWindow::paintEvent(QPaintEvent *event)
 {
 
     QPainter painter(this);
-    QPixmap pix;
     QPen pen;
-    QBrush brush;
-    for(int i=0;i<mysnake->snake.length();i++){
-        QRectF temp=mysnake->snake[i];
-        int direct=mysnake->getDirection();
-        if(i==0){
-            if(direct==dir::UP){
-                pix.load(":/snakeHeadUp.png");
-                painter.drawPixmap(temp.x(),temp.y(),Node::getWidth(),Node::getHeight(),pix);
-            }else if(direct==dir::DOWN){
-                pix.load(":/snakeHeadDown.png");
-                painter.drawPixmap(temp.x(),temp.y(),Node::getWidth(),Node::getHeight(),pix);
-            }else if(direct==dir::LEFT){
-                pix.load(":/snakeHeadLeft.png");
-                painter.drawPixmap(temp.x(),temp.y(),Node::getWidth(),Node::getHeight(),pix);
-            }else{
-                pix.load(":/snakeHeadRight.png");
-                painter.drawPixmap(temp.x(),temp.y(),Node::getWidth(),Node::getHeight(),pix);
-            }
-            //画蛇头，根据四个方向来画
-        }else{
-            //画蛇尾
-            pix.load(":/snakeTail.png");
-            painter.drawPixmap(temp.x(),temp.y(),Node::getWidth(),Node::getHeight(),pix);
-        }
-    }
-    pen.setColor(Qt::lightGray);
-    pen.setWidth(1);
-    painter.setRenderHint(QPainter::Antialiasing);
-    painter.setPen(pen);
-
-    int gridWidth = Node::getWidth(); // 网格宽度
-    int gridHeight = Node::getHeight(); // 网格高度
-
-    // 绘制纵向线条
-    for (int x = 0; x < width(); x += gridWidth) {
-        painter.drawLine(x, 0, x, height());
-    }
-
-    // 绘制横向线条
-    for (int y = 0; y < height(); y += gridHeight) {
-        painter.drawLine(0, y, width(), y);
-    }
-    //画墙
-    pix.load(":/wall.png");
-    for(int i=0;i<h/Node::getHeight();i++){
-        for(int j=0;j<w/Node::getWidth();j++){
-            QRectF* p=walls[i][j].getWall();
-            if(p!=nullptr){
-                painter.drawPixmap(p->left(),p->top(),Node::getWidth(),Node::getHeight(),pix);
-            }
-        }
-    }
-    //画障碍物
-    for(auto it=occupiedPositions.begin();it!=occupiedPositions.end();it++){
-        int x=it->first;
-        int y=it->second;
-        painter.drawPixmap(x,y,Node::getWidth(),Node::getHeight(),pix);
-    }
-    //画食物
-    pix.load(":/china.png");
-    painter.drawPixmap(food->getFood()->left(),food->getFood()->top(),Node::getWidth(),Node::getHeight(),pix);
-    if(biteSelf()||checkborder()||isCollide()){
+    bool gameOver = biteSelf() || checkborder() || isCollide();
+    // 网格线、墙、障碍物、食物的绘制
+    drawGrid(painter);
+    drawWalls(painter);
+    drawObstacles(painter);
+    drawFood(painter);
+    drawSnake(painter);
+    if (gameOver) {
         pen.setColor(Qt::red);
         painter.setPen(pen);
-        QFont font("方正舒体",50,QFont::Medium,false);
+        QFont font("方正舒体", w / 10, QFont::Medium, false);
         painter.setFont(font);
-        painter.drawText(w/2-200,h/2,QString("GAME OVER!"));
-        timer->stop();
+        painter.drawText(w / 2 - Node::getWidth() * (w / 45), h / 2, QString("GAME OVER!"));
+        timer->stop(); // 停止计时器
     }
-
 
 }
 
@@ -265,8 +241,101 @@ bool GameWindow::checkFoodPos()
     }else return false;
 }
 
+bool GameWindow::checknext()
+{
+    mysnake->addhead();
+    if(biteSelf()||checkborder()||isCollide()){
+        mysnake->deletehead();
+        return true;
+    }else{
+        mysnake->deletehead();
+        return false;
+    }
+}
+
+void GameWindow::drawGrid(QPainter& painter)
+{
+    QPen pen;
+    pen.setColor(Qt::lightGray);
+    pen.setWidth(1);
+    painter.setRenderHint(QPainter::Antialiasing);
+    painter.setPen(pen);
+
+    int gridWidth = Node::getWidth(); // 网格宽度
+    int gridHeight = Node::getHeight(); // 网格高度
+
+    // 绘制纵向线条
+    for (int x = 0; x < width(); x += gridWidth) {
+        painter.drawLine(x, 0, x, height());
+    }
+
+    // 绘制横向线条
+    for (int y = 0; y < height(); y += gridHeight) {
+        painter.drawLine(0, y, width(), y);
+    }
+}
+
+void GameWindow::drawWalls(QPainter& painter)
+{
+    QPixmap pix(":/wall.png");
+    for (int i = 0; i < h / Node::getHeight(); i++) {
+        for (int j = 0; j < w / Node::getWidth(); j++) {
+            QRectF* p = walls[i][j].getWall();
+            if (p != nullptr) {
+                painter.drawPixmap(p->left(), p->top(), Node::getWidth(), Node::getHeight(), pix);
+            }
+        }
+    }
+}
+
+void GameWindow::drawObstacles(QPainter& painter)
+{
+    QPixmap pix(":/wall.png"); // 假设你有一个障碍物图像
+    for (auto it = occupiedPositions.begin(); it != occupiedPositions.end(); it++) {
+        int x = it->first;
+        int y = it->second;
+        painter.drawPixmap(x, y, Node::getWidth(), Node::getHeight(), pix);
+    }
+}
+
+void GameWindow::drawFood(QPainter& painter)
+{
+    QPixmap pix(":/china.png");
+    painter.drawPixmap(food->getFood()->left(), food->getFood()->top(), Node::getWidth(), Node::getHeight(), pix);
+}
+
+void GameWindow::drawSnake(QPainter &painter)
+{
+    QPixmap pix;
+    // 绘制蛇
+    for (int i = 0; i < mysnake->snake.length(); i++) {
+        QRectF temp = mysnake->snake[i];
+        int direct = mysnake->getDirection();
+        if (i == 0) {
+            // 画蛇头
+            if (direct == dir::UP) {
+                pix.load(":/snakeHeadUp.png");
+            } else if (direct == dir::DOWN) {
+                pix.load(":/snakeHeadDown.png");
+            } else if (direct == dir::LEFT) {
+                pix.load(":/snakeHeadLeft.png");
+            } else {
+                pix.load(":/snakeHeadRight.png");
+            }
+            painter.drawPixmap(temp.x(), temp.y(), Node::getWidth(), Node::getHeight(), pix);
+        } else {
+            // 画蛇尾
+            pix.load(":/snakeTail.png");
+            painter.drawPixmap(temp.x(), temp.y(), Node::getWidth(), Node::getHeight(), pix);
+        }
+    }
+}
+
+
 void GameWindow::timeout()
 {
+    QPainter painter;
+    QPen pen;
     QRectF* f=food->getFood();
     if(mysnake->snake[0].intersects(*f)){
         mysnake->addLength();

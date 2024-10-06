@@ -9,27 +9,27 @@ CONFIG += c++17
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
-    faildialog.cpp \
     food.cpp \
     main.cpp \
     gamewindow.cpp \
     node.cpp \
+    returnwindow.cpp \
     snake.cpp \
     startwindow.cpp \
     wall.cpp
 
 HEADERS += \
-    faildialog.h \
     food.h \
     gamewindow.h \
     node.h \
+    returnwindow.h \
     snake.h \
     startwindow.h \
     wall.h
 
 FORMS += \
-    faildialog.ui \
     gamewindow.ui \
+    returnwindow.ui \
     startwindow.ui
 
 # Default rules for deployment.

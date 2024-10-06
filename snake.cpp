@@ -50,6 +50,13 @@ void Snake::deletetail()
     }
 }
 
+void Snake::deletehead()
+{
+    if(!snake.isEmpty()){
+        snake.removeFirst();
+    }
+}
+
 void Snake::addhead()
 {//后续要加判断边界
     int x=0,y=0;
@@ -82,7 +89,11 @@ int Snake::getDirection()
     return direction;
 }
 
+
+
 void Snake::setDirection(int x)
 {
     direction=x;
 }
+
+
