@@ -14,10 +14,10 @@ class ReturnWindow : public QMainWindow
 public:
     explicit ReturnWindow(QWidget *parent = nullptr);
     ~ReturnWindow();
+private: signals:
 
+    void toStart();
 private slots:
-
-    void on_regame_clicked();
 
     void on_return_2_clicked();
 

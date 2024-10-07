@@ -35,12 +35,13 @@ public:
     bool checkborder();//判断是否撞到边界墙
     void initObstacle(int num);//初始化障碍
     bool checkFoodPos();//检测食物是否与障碍物重叠
-    bool checknext();//检测下一时刻是否碰到障碍物或咬自己
     void drawGrid(QPainter& painter);
     void drawWalls(QPainter& painter);
     void drawObstacles(QPainter& painter);
     void drawFood(QPainter& painter);
     void drawSnake(QPainter& painter);
+private: signals:
+    void restart();
 public slots:
     void timeout();
 private:
@@ -56,7 +57,8 @@ private:
     QSet<pair<int,int>> occupiedPositions;//记录某个位置是否有障碍,用左上角坐标代替
     int score;//得分
     bool gameover=false;
-    ReturnWindow* re;
+    bool returnWindowShown=false;  // 添加标志变量
+    ReturnWindow* re=nullptr;
 
 };
 #endif // GAMEWINDOW_H

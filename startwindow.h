@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include"gamewindow.h"
+#include"returnwindow.h"
 namespace Ui {
 class StartWindow;
 }
@@ -26,6 +27,7 @@ private:
     Ui::StartWindow *ui;
     GameWindow* gamewindow;
     int diff=0;
+
 };
 
 #endif // STARTWINDOW_H

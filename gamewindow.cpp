@@ -18,12 +18,12 @@ GameWindow::GameWindow(QWidget *parent,int diff):QMainWindow(parent),ui(new Ui::
     case difficulty::MIDDLE:
         widnode=36;
         hgtnode=36;
-        obstaclenum=50;
+        obstaclenum=100;
         break;
     case difficulty::HARD:
         widnode=36;
         hgtnode=36;
-        obstaclenum=100;
+        obstaclenum=200;
         break;
     default:
         break;
@@ -71,6 +71,7 @@ GameWindow::GameWindow(QWidget *parent,int diff):QMainWindow(parent),ui(new Ui::
     addReward();//初始化食物
     connect(timer,&QTimer::timeout,this,&GameWindow::timeout);
 
+
 }
 
 GameWindow::~GameWindow()
@@ -89,22 +90,22 @@ void GameWindow::keyPressEvent(QKeyEvent *event)
 {
     int key=event->key();
     switch (key) {
-    case Qt::Key_Up:
+    case Qt::Key_W:
         if(mysnake->getDirection()!=dir::DOWN){
             mysnake->setDirection(dir::UP);
         }
         break;
-    case Qt::Key_Down:
+    case Qt::Key_S:
         if(mysnake->getDirection()!=dir::UP){
             mysnake->setDirection(dir::DOWN);
         }
         break;
-    case Qt::Key_Left:
+    case Qt::Key_A:
         if(mysnake->getDirection()!=dir::RIGHT){
             mysnake->setDirection(dir::LEFT);
         }
         break;
-    case Qt::Key_Right:
+    case Qt::Key_D:
         if(mysnake->getDirection()!=dir::LEFT){
             mysnake->setDirection(dir::RIGHT);
         }
@@ -144,13 +145,14 @@ void GameWindow::paintEvent(QPaintEvent *event)
     drawObstacles(painter);
     drawFood(painter);
     drawSnake(painter);
-    if (gameOver) {
-        pen.setColor(Qt::red);
-        painter.setPen(pen);
-        QFont font("方正舒体", w / 10, QFont::Medium, false);
-        painter.setFont(font);
-        painter.drawText(w / 2 - Node::getWidth() * (w / 45), h / 2, QString("GAME OVER!"));
+    if (gameOver&&!returnWindowShown) {
         timer->stop(); // 停止计时器
+        re=new ReturnWindow(this);
+        re->show();
+        returnWindowShown = true;
+        connect(re,&ReturnWindow::toStart,this,[=](){
+            emit restart();
+        });
     }
 
 }
@@ -218,10 +220,10 @@ void GameWindow::initObstacle(int num)
             continue;  // 重新生成随机坐标
         }
         //障碍物不能出现在蛇的初始位置
-        int x1=w-Node::getWidth();
-        int x2=w+Node::getWidth();
-        int y1=h-Node::getHeight();
-        int y2=h+Node::getHeight();
+        int x1=w/2-Node::getWidth();
+        int x2=w/2+Node::getWidth();
+        int y1=h/2-Node::getHeight();
+        int y2=h/2+Node::getHeight();
         if(x>=x1&&x<=x2&&y>=y1&&y<=y2){
             continue;
         }
@@ -240,19 +242,6 @@ bool GameWindow::checkFoodPos()
         return true;
     }else return false;
 }
-
-bool GameWindow::checknext()
-{
-    mysnake->addhead();
-    if(biteSelf()||checkborder()||isCollide()){
-        mysnake->deletehead();
-        return true;
-    }else{
-        mysnake->deletehead();
-        return false;
-    }
-}
-
 void GameWindow::drawGrid(QPainter& painter)
 {
     QPen pen;

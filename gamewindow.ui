@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>385</width>
+    <width>381</width>
     <height>294</height>
    </rect>
   </property>
@@ -33,12 +33,28 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>385</width>
+     <width>381</width>
      <height>18</height>
     </rect>
    </property>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
+  <action name="regame">
+   <property name="text">
+    <string>重新游戏</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="action">
+   <property name="text">
+    <string>返回主菜单</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections/>

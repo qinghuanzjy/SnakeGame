@@ -7,6 +7,7 @@ StartWindow::StartWindow(QWidget *parent):QMainWindow(parent),ui(new Ui::StartWi
 {
     ui->setupUi(this);
     setWindowTitle("开始窗口");
+
 }
 
 StartWindow::~StartWindow()
@@ -25,6 +26,10 @@ void StartWindow::on_pushButton_clicked()
     this->hide();
     gamewindow=new GameWindow(this,diff);
     gamewindow->show();
+    connect(gamewindow,&GameWindow::restart,this,[=](){
+        gamewindow->hide();  // 隐藏游戏窗口
+        this->show();        // 显示开始窗口
+    });
 }
 
 
