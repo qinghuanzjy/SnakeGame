@@ -138,12 +138,12 @@ void GameWindow::paintEvent(QPaintEvent *event)
 
     QPainter painter(this);
     QPen pen;
-    bool gameOver = biteSelf() || checkborder() || isCollide();
+    bool gameOver = biteSelf()||checkborder()||isCollide();
     // 网格线、墙、障碍物、食物的绘制
     drawGrid(painter);
     drawWalls(painter);
-    drawObstacles(painter);
     drawFood(painter);
+    drawObstacles(painter);
     drawSnake(painter);
     if (gameOver&&!returnWindowShown) {
         timer->stop(); // 停止计时器
@@ -184,7 +184,6 @@ void GameWindow::addReward()
     int x=generator->bounded(1,unitwid-1);
     int y=generator->bounded(1,unithgt-1);
     food=new Food(x*Node::getWidth(),y*Node::getHeight(),Node::getWidth(),Node::getHeight());
-    update();
 }
 
 bool GameWindow::biteSelf()
@@ -220,11 +219,11 @@ void GameWindow::initObstacle(int num)
             continue;  // 重新生成随机坐标
         }
         //障碍物不能出现在蛇的初始位置
-        int x1=w/2-Node::getWidth();
-        int x2=w/2+Node::getWidth();
-        int y1=h/2-Node::getHeight();
-        int y2=h/2+Node::getHeight();
-        if(x>=x1&&x<=x2&&y>=y1&&y<=y2){
+        int x1=w/2-2*Node::getWidth();
+        int x2=w/2+2*Node::getWidth();
+        int y1=h/2-2*Node::getHeight();
+        int y2=h/2+2*Node::getHeight();
+        if(x*Node::getWidth()>=x1&&x*Node::getWidth()<=x2&&y*Node::getHeight()>=y1&&y*Node::getHeight()<=y2){
             continue;
         }
         occupiedPositions.insert(position);
@@ -237,10 +236,17 @@ bool GameWindow::checkFoodPos()
     QRectF* f=food->getFood();
     int x=f->x();
     int y=f->y();
-    std::pair<int,int>pos(x*Node::getWidth(),y*Node::getHeight());
+    std::pair<int,int>pos(x,y);
     if(occupiedPositions.contains(pos)){
         return true;
-    }else return false;
+    } // 检查食物位置是否和蛇重叠
+    for (const QRectF& segment : mysnake->snake) {
+        if (segment.intersects(*f)) {
+            return true; // 食物和蛇重叠
+        }
+    }
+
+    return false;
 }
 void GameWindow::drawGrid(QPainter& painter)
 {
@@ -337,7 +343,7 @@ void GameWindow::timeout()
         delete food;
         addReward();
     }//检查食物是否与障碍物重叠，重叠就重新生成食物
-    mysnake->deletetail();
     mysnake->addhead();
+    mysnake->deletetail();
     update();
 }
